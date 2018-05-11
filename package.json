@@ -1,6 +1,6 @@
 {
   "name": "gulptransformbase",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Base transform class",
   "main": "gulpTransformBase.js",
   "types": "gulpTransformBase.d.ts",

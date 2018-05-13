@@ -30,8 +30,10 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     private processingBufferFile=false;
     private thrownBadFileType=false;
     private cb:TransformCallback=()=>{};
+    protected pluginName:string;
     constructor(options:T,transformOptions?:TransformOptions){
-        super({...transformOptions,...{objectMode:true}})
+        super({...transformOptions,...{objectMode:true}});
+        this.pluginName=options.pluginName?options.pluginName:this.getPluginName((<any>this).constructor.name);
         const defaultValues:GulpTransformBaseOptions={supportsBuffer:true,supportsStream:true};
         const thisOptions={}
         this.options=Object.assign({},defaultValues,options)  as any as ObjectOverwrite<T,GulpTransformedBaseOptions>;
@@ -51,11 +53,21 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
            return false;
         }
     }
-    getIncorrectTypeError(transformedToBuffer:boolean){
-        this.thrownBadFileType=true;
-        return IncorrectTransformedFileTypeError.create(this.getPluginName(),transformedToBuffer);
+    //later date change to have same arguments as PluginError constructor
+    protected getPluginError(errorOrMessage:Error|string){
+        if(errorOrMessage instanceof Error){
+            const noErrorMessage=errorOrMessage.message==="";
+            if(noErrorMessage){
+                return new PluginError(this.pluginName,errorOrMessage,{message:"Plugin error"});
+            }
+        }
+        return new PluginError(this.pluginName,errorOrMessage);
     }
-    returnedFileIsOfCorrectType(file:File){
+    private getIncorrectTypeError(transformedToBuffer:boolean){
+        this.thrownBadFileType=true;
+        return IncorrectTransformedFileTypeError.create(this.pluginName,transformedToBuffer);
+    }
+    private returnedFileIsOfCorrectType(file:File){
         if(file.isBuffer()){
             return this.processingBufferFile
         }
@@ -63,12 +75,12 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     }
     protected abstract ignoreFile(file:File):boolean
     protected abstract filterFile(file:File):boolean
-    private getPluginName(){
-        return this.options.pluginName?this.options.pluginName:(<any>this).constructor.name;
+    private getPluginName(ctorName:string){
+        //note that there is a package out there that uses the call stack to get the file name of the calling code
+        return "gulp-" + ctorName.replace("Transform","").toLowerCase();
     }
     private processUnsupported(file:File,cb:TransformCallback){
-        
-        return cbErrorIfContentsTypeNotSupported(this.getPluginName(),file,cb,!this.options.supportsBuffer,!this.options.supportsStream);
+        return cbErrorIfContentsTypeNotSupported(this.pluginName,file,cb,!this.options.supportsBuffer,!this.options.supportsStream);
     }
     private processIgnoreFile(file:File,cb:TransformCallback):boolean{
         const ignored= this.ignoreFile(file);
@@ -84,14 +96,21 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     }
     private preProcessFile(file:File,cb:TransformCallback){
         this.processingBufferFile=file.isBuffer();
-        let processed=this.processUnsupported(file,cb);
-        if(!processed){
-            processed=this.processFilterFile(file,cb);
+        let didProcess=false;
+        let processed=false;
+        try{
+            processed=this.processUnsupported(file,cb);
             if(!processed){
-                processed=this.processIgnoreFile(file,cb);
+                processed=this.processFilterFile(file,cb);
+                if(!processed){
+                    processed=this.processIgnoreFile(file,cb);
+                }
             }
+        }catch(e){
+            cb(this.getPluginError(e));
+            didProcess=true;
         }
-        return processed;
+        return didProcess?didProcess:processed;
     }
     _transform(file:File,encoding:string,cb:TransformCallback){
         const processed=this.preProcessFile(file,cb);
@@ -110,11 +129,14 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
                 }
                 
             }
-            
-            if(file.isBuffer()){
-                this.transformBufferFile(file,file.contents,encoding,fakeCallback);
-            }else{
-                this.transformStreamFile(file,file.contents as NodeJS.ReadableStream,encoding,fakeCallback);
+            try{
+                if(file.isBuffer()){
+                    this.transformBufferFile(file,file.contents,encoding,fakeCallback);
+                }else{
+                    this.transformStreamFile(file,file.contents as NodeJS.ReadableStream,encoding,fakeCallback);
+                }
+            }catch(e){
+                this.cb(this.getPluginError(e));
             }
         }
     }

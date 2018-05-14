@@ -34,7 +34,7 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     constructor(options:T,transformOptions?:TransformOptions){
         super({...transformOptions,...{objectMode:true}});
         this.pluginName=options.pluginName?options.pluginName:this.getPluginName((<any>this).constructor.name);
-        const defaultValues:GulpTransformBaseOptions={supportsBuffer:true,supportsStream:true};
+        const defaultValues:GulpTransformBaseOptions={supportsBuffer:true,supportsStream:false};
         const thisOptions={}
         this.options=Object.assign({},defaultValues,options)  as any as ObjectOverwrite<T,GulpTransformedBaseOptions>;
         const realPush=this.push;
@@ -73,8 +73,12 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
         }
         return !this.processingBufferFile;
     }
-    protected abstract ignoreFile(file:File):boolean
-    protected abstract filterFile(file:File):boolean
+    protected ignoreFile(file:File){
+        return false;
+    }
+    protected  filterFile(file:File){
+        return false;
+    }
     private getPluginName(ctorName:string){
         //note that there is a package out there that uses the call stack to get the file name of the calling code
         return "gulp-" + ctorName.replace("Transform","").toLowerCase();
@@ -83,7 +87,8 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
         return cbErrorIfContentsTypeNotSupported(this.pluginName,file,cb,!this.options.supportsBuffer,!this.options.supportsStream);
     }
     private processIgnoreFile(file:File,cb:TransformCallback):boolean{
-        const ignored= this.ignoreFile(file);
+        const ignored=this.ignoreFile(file);
+        
         if(ignored){
             cb(null,file);
         }
@@ -91,6 +96,7 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     }
     private processFilterFile(file:File,cb:TransformCallback){
         const filtered=this.filterFile(file);
+
         if(filtered) cb();
         return filtered;
     }
@@ -140,6 +146,11 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
             }
         }
     }
-    protected abstract transformBufferFile(file:File,contents:Buffer,encoding:string,cb:TransformCallback):void;
-    protected abstract transformStreamFile(file:File,contents:NodeJS.ReadableStream,encoding:string,cb:TransformCallback):void;
+    protected  transformBufferFile(file:File,contents:Buffer,encoding:string,cb:TransformCallback){
+        cb(null,file);
+    }
+    protected transformStreamFile(file:File,contents:NodeJS.ReadableStream,encoding:string,cb:TransformCallback){
+        cb(null,file);
+    }
 }
+

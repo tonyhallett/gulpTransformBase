@@ -23,7 +23,7 @@
             "args": [
                 "--runInBand",
                 "--testNamePattern",
-                "add in here to debug a specific test when vscode-jest fails to work properly or want to debug a test before it fails"
+                "should filter"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

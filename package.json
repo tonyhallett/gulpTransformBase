@@ -1,19 +1,30 @@
 {
   "name": "gulptransformbase",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Base transform class",
   "main": "gulpTransformBase.js",
   "types": "gulpTransformBase.d.ts",
-  "files":["gulpTransformBase.js","gulpTransformBase.d.ts"],
+  "files": [
+    "gulpTransformBase.js",
+    "gulpTransformBase.d.ts"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": {
+    "name": "Tony Hallett",
+    "email": "tonyhallett74@gmail.com",
+    "url": ""
+  },
+  "keywords":["gulp","transform"],
+  "repository": "github:tonyhallett/gulpTransformBase",
+  "homepage": "https://github.com/tonyhallett/gulpTransformBase",
+  "bugs": "https://github.com/tonyhallett/gulpTransformBase/issues",
   "license": "ISC",
   "devDependencies": {
     "@types/into-stream": "^3.1.0",
     "@types/jest": "^22.2.3",
-    "gulpplugintesthelpers": "^1.0.0",
+    "gulpplugintesthelpers": "^1.0.2",
     "into-stream": "^3.1.0",
     "jest": "^22.4.3",
     "ts-jest": "^22.4.6",

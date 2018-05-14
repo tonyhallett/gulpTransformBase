@@ -1,6 +1,6 @@
 
 import {TransformCallback} from 'th-gulpHelpers'
-import {createStreamFile,createBufferFile,pluginTest,ignoresFile,filtersFile,File,PluginError} from 'gulpPluginTestHelpers'
+import {createStreamFile,createBufferFile,pluginTest,ignoresFile,filtersFile,File,PluginError,FileContentsTypeNotSupportedError, throwsPluginErrorOnUnsupportedContentType} from 'gulpPluginTestHelpers'
 import {GulpTransformBase,GulpTransformBaseOptions} from '../gulpTransformBase'
 import intoStream =require('into-stream');
 enum BadFileType{None,Cb,Push}
@@ -64,18 +64,35 @@ class TestTransformBase extends GulpTransformBase<TestTransformBaseOptions> {
 }
 
 describe('TransformBase',()=>{
+    describe("unsupported content type",()=>{
+        describe("buffer not supported",()=>{
+            it('should throw',(done)=>{
+                throwsPluginErrorOnUnsupportedContentType(done,new TestTransformBase({supportsBuffer:false,badFileType:BadFileType.None}),false);
+            })
+        })
+        describe("stream not supported",()=>{
+            it('should throw when explicit',(done)=>{
+                throwsPluginErrorOnUnsupportedContentType(done,new TestTransformBase({supportsStream:false,badFileType:BadFileType.None}),true);
+            })
+            it('should throw when default',(done)=>{
+                throwsPluginErrorOnUnsupportedContentType(done,new TestTransformBase({badFileType:BadFileType.None}),true);
+            })
+        })
+        
+    })
     it('should ignore',(done)=>{
         ignoresFile(done,new TestTransformBase({badFileType:BadFileType.None,ignoreFilter:IgnoreFilter.Ignore}),createBufferFile(""));
     })
         
     it('should filter',(done)=>{
-        filtersFile(done,new TestTransformBase({badFileType:BadFileType.None,ignoreFilter:IgnoreFilter.Filter}),createStreamFile(""));
+        filtersFile(done,new TestTransformBase({supportsStream:true,badFileType:BadFileType.None,ignoreFilter:IgnoreFilter.Filter}),createStreamFile(""));
     })
+
     //know it works for Buffer->Buffer , Stream -> Stream due to above tests 
     describe('replacement of this.push and callback - IncorrectTransformedFileTypeError when Type1 -> Type2',()=>{
         describe('when using the callback',()=>{
             it('throw when stream -> buffer',(done)=>{
-                pluginTest(done,new TestTransformBase({badFileType:BadFileType.Cb}),createStreamFile(""),(files,e)=>{
+                pluginTest(done,new TestTransformBase({supportsStream:true,badFileType:BadFileType.Cb}),createStreamFile(""),(files,e)=>{
                     expect(e).toBeInstanceOf(PluginError);
                     expect((e as any).incorrectTransformedFileTypeError).toBe(true);
                 });
@@ -90,7 +107,7 @@ describe('TransformBase',()=>{
         });
         describe('when pushing',()=>{
             it('throws when stream -> buffer',(done)=>{
-                pluginTest(done,new TestTransformBase({badFileType:BadFileType.Push}),createStreamFile(""),(files,e)=>{
+                pluginTest(done,new TestTransformBase({supportsStream:true,badFileType:BadFileType.Push}),createStreamFile(""),(files,e)=>{
                     expect(e).toBeInstanceOf(PluginError);
                     expect((e as any).incorrectTransformedFileTypeError).toBe(true);
                 });
@@ -123,7 +140,8 @@ describe('TransformBase',()=>{
                     {
                         badFileType:BadFileType.None,
                         error:error,
-                        errorWhen:errorWhen
+                        errorWhen:errorWhen,
+                        supportsStream:errorWhen===ErrorWhen.TransformStreamFile
                     }
                 ),file,
                 ((f,e)=>{

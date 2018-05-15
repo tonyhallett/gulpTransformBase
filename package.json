@@ -16,7 +16,10 @@
     "email": "tonyhallett74@gmail.com",
     "url": ""
   },
-  "keywords":["gulp","transform"],
+  "keywords": [
+    "gulp",
+    "transform"
+  ],
   "repository": "github:tonyhallett/gulpTransformBase",
   "homepage": "https://github.com/tonyhallett/gulpTransformBase",
   "bugs": "https://github.com/tonyhallett/gulpTransformBase/issues",
@@ -24,7 +27,7 @@
   "devDependencies": {
     "@types/into-stream": "^3.1.0",
     "@types/jest": "^22.2.3",
-    "gulpplugintesthelpers": "^1.0.2",
+    "gulpplugintesthelpers": "^1.0.3",
     "into-stream": "^3.1.0",
     "jest": "^22.4.3",
     "ts-jest": "^22.4.6",

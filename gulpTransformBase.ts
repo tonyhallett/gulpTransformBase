@@ -138,8 +138,10 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
             try{
                 if(file.isBuffer()){
                     this.transformBufferFile(file,file.contents,encoding,fakeCallback);
-                }else{
+                }else if(file.isStream()){
                     this.transformStreamFile(file,file.contents as NodeJS.ReadableStream,encoding,fakeCallback);
+                }else{
+                    this.transformNullFile(file,encoding,fakeCallback);
                 }
             }catch(e){
                 this.cb(this.getPluginError(e));
@@ -150,6 +152,9 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
         cb(null,file);
     }
     protected transformStreamFile(file:File,contents:NodeJS.ReadableStream,encoding:string,cb:TransformCallback){
+        cb(null,file);
+    }
+    protected transformNullFile(file:File,encoding:string,cb:TransformCallback){
         cb(null,file);
     }
 }

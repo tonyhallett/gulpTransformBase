@@ -75,10 +75,10 @@ export abstract class GulpTransformBase<T={}> extends Transform{
         }
         return !this.processingBufferFile;
     }
-    protected ignoreFile(file:File){
+    protected ignoreFile(file:File):boolean{
         return false;
     }
-    protected  filterFile(file:File){
+    protected  filterFile(file:File):boolean{
         return false;
     }
     private getPluginName(ctorName:string){

@@ -1,6 +1,6 @@
 {
   "name": "gulptransformbase",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Base transform class",
   "main": "gulpTransformBase.js",
   "types": "gulpTransformBase.d.ts",
@@ -45,7 +45,8 @@
       "jsx",
       "json",
       "node"
-    ]
+    ],
+    "collectCoverage":true
   },
   "dependencies": {
     "th-gulphelpers": "^1.0.1"

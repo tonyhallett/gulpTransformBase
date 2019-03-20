@@ -1,20 +1,12 @@
 import { TransformCallback,cbErrorIfContentsTypeNotSupported,Transform,TransformOptions,File,PluginError } from "th-gulpHelpers";
 export { TransformCallback,cbErrorIfContentsTypeNotSupported,Transform,TransformOptions,File,PluginError } from "th-gulpHelpers";
 //#region options
-export type StringOmit<L1 extends string, L2 extends string> = ({ [P in L1]: P } &
-    { [P in L2]: never } & { [key: string]: never })[L1]
-export type ObjectOverwrite<O1, O2> = Pick<O1, StringOmit<keyof O1, keyof O2>> & O2
-export interface GulpTransformBaseOptions{
-    supportsBuffer?:boolean,
-    supportsStream?:boolean,
-    pluginName?:string
-}
-
-export interface GulpTransformedBaseOptions extends GulpTransformBaseOptions{
+interface BaseOptions{
     supportsBuffer:boolean,
-    supportsStream:boolean
+    supportsStream:boolean,
+    pluginName:string
 }
-//#endregion
+export type GulpTransformBaseOptions = Partial<BaseOptions>
 
 export class IncorrectTransformedFileTypeError extends Error{ 
     constructor(transformedToBuffer:boolean){
@@ -25,17 +17,29 @@ export class IncorrectTransformedFileTypeError extends Error{
         return new PluginError(pluginName,new IncorrectTransformedFileTypeError(transformedToBuffer));
     }
 }
-export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpTransformBaseOptions> extends Transform{
-    protected options:ObjectOverwrite<T,GulpTransformedBaseOptions>
+export abstract class GulpTransformBase<T={}> extends Transform{
+    protected options:T|undefined;
+    private defaultBaseOptions:BaseOptions={
+        supportsBuffer:true,
+        supportsStream:false,
+        pluginName:""
+    }
+
+    private baseOptions:BaseOptions;
     private processingBufferFile=false;
     private thrownBadFileType=false;
-    private cb:TransformCallback=()=>{};
-    protected pluginName:string;
-    constructor(options:T,transformOptions?:TransformOptions){
+    private cb!:TransformCallback
+    constructor(options?:T,baseOptions?:GulpTransformBaseOptions,transformOptions?:TransformOptions){
         super({...transformOptions,...{objectMode:true}});
-        this.pluginName=options.pluginName?options.pluginName:this.getPluginName((<any>this).constructor.name);
-        const defaultValues:GulpTransformBaseOptions={supportsBuffer:true,supportsStream:false};
-        this.options=Object.assign({},defaultValues,options)  as any as ObjectOverwrite<T,GulpTransformedBaseOptions>;
+        var pluginName="";
+        if(baseOptions&&baseOptions.pluginName){
+            pluginName=baseOptions.pluginName;
+        }else{
+            pluginName=this.getPluginName((<any>this).constructor.name);
+        }
+        this.baseOptions=Object.assign({},this.defaultBaseOptions,baseOptions,{pluginName:pluginName});
+        
+        this.options=options;
         const realPush=this.push;
         this.push=(file:File,encoding?:string|undefined)=>{
             if(!file){
@@ -55,16 +59,15 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
     //later date change to have same arguments as PluginError constructor
     protected getPluginError(errorOrMessage:Error|string){
         if(errorOrMessage instanceof Error){
-            const noErrorMessage=errorOrMessage.message==="";
-            if(noErrorMessage){
-                return new PluginError(this.pluginName,errorOrMessage,{message:"Plugin error"});
+            if(!errorOrMessage.message){
+                errorOrMessage.message="Plugin error";
             }
         }
-        return new PluginError(this.pluginName,errorOrMessage);
+        return new PluginError(this.baseOptions.pluginName,errorOrMessage);
     }
     private getIncorrectTypeError(transformedToBuffer:boolean){
         this.thrownBadFileType=true;
-        return IncorrectTransformedFileTypeError.create(this.pluginName,transformedToBuffer);
+        return IncorrectTransformedFileTypeError.create(this.baseOptions.pluginName,transformedToBuffer);
     }
     private returnedFileIsOfCorrectType(file:File){
         if(file.isBuffer()){
@@ -83,7 +86,7 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
         return "gulp-" + ctorName.replace("Transform","").toLowerCase();
     }
     private processUnsupported(file:File,cb:TransformCallback){
-        return cbErrorIfContentsTypeNotSupported(this.pluginName,file,cb,!this.options.supportsBuffer,!this.options.supportsStream);
+        return cbErrorIfContentsTypeNotSupported(this.baseOptions.pluginName,file,cb,!this.baseOptions.supportsBuffer,!this.baseOptions.supportsStream);
     }
     private processIgnoreFile(file:File,cb:TransformCallback):boolean{
         const ignored=this.ignoreFile(file);

@@ -23,7 +23,7 @@
             "args": [
                 "--runInBand",
                 "--testNamePattern",
-                "should filter"
+                "put a pattern in here"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

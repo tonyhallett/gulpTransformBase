@@ -35,7 +35,6 @@ export abstract class GulpTransformBase<T extends GulpTransformBaseOptions=GulpT
         super({...transformOptions,...{objectMode:true}});
         this.pluginName=options.pluginName?options.pluginName:this.getPluginName((<any>this).constructor.name);
         const defaultValues:GulpTransformBaseOptions={supportsBuffer:true,supportsStream:false};
-        const thisOptions={}
         this.options=Object.assign({},defaultValues,options)  as any as ObjectOverwrite<T,GulpTransformedBaseOptions>;
         const realPush=this.push;
         this.push=(file:File,encoding?:string|undefined)=>{

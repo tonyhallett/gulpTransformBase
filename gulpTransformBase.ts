@@ -1,7 +1,7 @@
 import { TransformCallback,cbErrorIfContentsTypeNotSupported,Transform,TransformOptions,File,PluginError } from "th-gulpHelpers";
 export { TransformCallback,cbErrorIfContentsTypeNotSupported,Transform,TransformOptions,File,PluginError } from "th-gulpHelpers";
 //#region options
-interface BaseOptions{
+export interface BaseOptions{
     supportsBuffer:boolean,
     supportsStream:boolean,
     pluginName:string

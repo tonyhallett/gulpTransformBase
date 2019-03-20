@@ -1,6 +1,6 @@
 {
   "name": "gulptransformbase",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Base transform class",
   "main": "gulpTransformBase.js",
   "types": "gulpTransformBase.d.ts",
@@ -10,7 +10,8 @@
   ],
   "keywords":["gulpplugin","gulpfriendly","typescript"],
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "tsc":"tsc"
   },
   "author": {
     "name": "Tony Hallett",

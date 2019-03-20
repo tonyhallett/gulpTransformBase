@@ -8,6 +8,7 @@
     "gulpTransformBase.js",
     "gulpTransformBase.d.ts"
   ],
+  "keywords":["gulpplugin","gulpfriendly","typescript"],
   "scripts": {
     "test": "jest"
   },
@@ -16,10 +17,6 @@
     "email": "tonyhallett74@gmail.com",
     "url": ""
   },
-  "keywords": [
-    "gulp",
-    "transform"
-  ],
   "repository": "github:tonyhallett/gulpTransformBase",
   "homepage": "https://github.com/tonyhallett/gulpTransformBase",
   "bugs": "https://github.com/tonyhallett/gulpTransformBase/issues",
